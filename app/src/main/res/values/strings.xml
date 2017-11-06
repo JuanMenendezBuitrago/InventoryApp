@@ -115,5 +115,6 @@
     <string name="action_delete_all_products_successful">All Products Deleted Successfuly</string>
     <string name="hint_product_supplier_email">sup. email</string>
     <string name="hint_product_supplier_name">sup. name</string>
+    <string name="hint_product_increment">increment</string>
 
 </resources>

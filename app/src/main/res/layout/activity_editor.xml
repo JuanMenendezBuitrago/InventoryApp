@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2016 The Android Open Source Project
+<?xml version="1.0" encoding="utf-8"?><!-- Copyright (C) 2016 The Android Open Source Project
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
      You may obtain a copy of the License at
@@ -9,10 +8,8 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
--->
-<!-- Layout for the editor -->
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+--><!-- Layout for the editor -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -45,6 +42,7 @@
                 android:layout_height="200dp"
                 android:layout_marginTop="16dp"
                 android:gravity="top|center_horizontal"
+                android:adjustViewBounds="true"
                 android:scaleType="fitStart" />
 
         </LinearLayout>
@@ -64,18 +62,52 @@
                 android:hint="@string/hint_product_name"
                 android:inputType="textCapWords" />
 
-            <!-- quantity field -->
-            <EditText
-                android:id="@+id/edit_product_quantity"
-                style="@style/EditorFieldStyle"
-                android:hint="@string/hint_product_quantity"
-                android:inputType="textCapWords" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
+                <!-- quantity field -->
+                <EditText
+                    android:id="@+id/edit_product_quantity"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="@string/hint_product_quantity"
+                    android:inputType="textCapWords" />
+
+                <!-- increment field -->
+                <Button
+                    android:id="@+id/button_increment"
+                    android:layout_width="32dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0"
+                    android:text="+" />
+
+                <EditText
+                    android:id="@+id/edit_product_increment"
+                    android:layout_width="64dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:gravity="center_horizontal"
+                    android:hint="@string/hint_product_increment"
+                    android:inputType="textCapWords"
+                    android:text="1" />
+
+                <Button
+                    android:id="@+id/button_decrement"
+                    android:layout_width="32dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="-" />
+
+
+            </LinearLayout>
             <!-- price field -->
             <EditText
                 android:id="@+id/edit_product_price"
                 style="@style/EditorFieldStyle"
-                android:hint="@string/hint_product_quantity"
+                android:hint="@string/hint_product_price"
                 android:inputType="textCapWords" />
 
             <!-- supplier name field -->
@@ -118,10 +150,29 @@
                     android:padding="10dp"
                     android:text="Add Image"
                     android:textSize="21sp" />
-
             </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_marginTop="8dp"
+                android:id="@+id/edit_product_order"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/colorAccent"
+                android:clickable="true">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:drawableLeft="@drawable/ic_order"
+                    android:drawablePadding="10dp"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:text="Order"
+                    android:textSize="21sp" />
+            </RelativeLayout>
+
 
         </LinearLayout>
     </LinearLayout>
-
 </LinearLayout>

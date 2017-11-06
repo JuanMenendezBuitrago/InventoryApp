@@ -15,8 +15,10 @@
  */
 package com.example.android.inventoryapp;
 
+import android.app.Activity;
 import android.app.LoaderManager;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -24,9 +26,11 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -37,6 +41,8 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -58,6 +64,12 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     private static final int PICK_IMAGE = 100;
 
+    /** maximum quantity allowed */
+    private static final int MIN_QUANTITY = 0;
+
+    /** minimum quantity allowed */
+    private static final int MAX_QUANTITY = 100;
+
     /** EditText field to enter the product's name */
     private EditText mNameEditText;
 
@@ -76,9 +88,23 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     /** EditText field to enter supplier email */
     private EditText mSupplierEmailEditText;
 
+    /** ImageView for the product's image */
     private ImageView mImageView;
 
+    /** Fake button for selecting an image from the gallery */
     private RelativeLayout mBrowseGalleryButton;
+
+    /** Fake button for placing an order (send asn email) */
+    private RelativeLayout mOrderButton;
+
+    /** EditText that hold the value to increment/decrement the quantity */
+    private EditText mIncrementEditText;
+
+    /** Button for incrementing th quantity */
+    private Button mIncrementButton;
+
+    /** Button for decrementing the quantity */
+    private Button mDecrementButton;
 
     /** Content URI for the existing product (null if it's a new product) */
     private Uri mCurrentProductUri;
@@ -87,11 +113,9 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     private boolean mProductHasChanged = false;
 
     /** Product image URI */
-    private Uri mImageUri;
+    private Uri mImageUri = null;
 
-    /**
-     * Click listener for the "pick image" fake button.
-     */
+    /** Click listener for the "pick image" fake button. */
     private View.OnClickListener mBrowseGalleryListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -99,9 +123,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         }
     };
 
-    /**
-     * Sets an event listener to be attached to the EditText elements.
-     */
+    /** Sets an event listener to be attached to the EditText elements. */
     private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -109,6 +131,76 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             return false;
         }
     };
+
+    /** Listener for the decrement button */
+    private View.OnClickListener mDecrementListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            mIncrementButton.setEnabled(true);
+
+            // parse increment
+            int increment = getIncrement();
+            mIncrementEditText.setText(String.valueOf(increment));
+
+            // parse old quantity
+            int quantity = getQuantity();
+
+            // set new quantity
+            int newQuantity = quantity - increment;
+            if (newQuantity < (MIN_QUANTITY+1)) {
+                newQuantity = MIN_QUANTITY;
+                mDecrementButton.setEnabled(false);
+                Toast.makeText(EditorActivity.this, "You have reached the minimum", Toast.LENGTH_SHORT).show();
+            }
+            mQuantityEditText.setText(String.valueOf(newQuantity));
+        }
+    };
+
+    /** Listener for the increment button */
+    private View.OnClickListener mIncrementListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            mDecrementButton.setEnabled(true);
+
+            // parse increment
+            int increment = getIncrement();
+            mIncrementEditText.setText(String.valueOf(increment));
+
+            // parse old quantity
+            int quantity = getQuantity();
+
+            // set new quantity
+            int newQuantity = quantity + increment;
+            if (newQuantity > (MAX_QUANTITY-1) ) {
+                newQuantity = MAX_QUANTITY;
+                mIncrementButton.setEnabled(false);
+                Toast.makeText(EditorActivity.this, "You have reached the maximum", Toast.LENGTH_SHORT).show();
+            }
+            mQuantityEditText.setText(String.valueOf(newQuantity));
+        }
+    };
+
+    /** Listener that launches the email client for placing an order */
+    private View.OnClickListener mOrderListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("mailto:" + mSupplierEmailEditText.getText().toString().trim()));
+            if (intent.resolveActivity(getPackageManager()) !=null) {
+                startActivity(intent);
+            } else {
+                Context context = getApplicationContext();
+                Toast.makeText(context, "Unable to open.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
+
+    /** Error message for the form validation */
+    private String mErrorMessage = null;
+
+    //////////////////////////
+    /// Overridden methods ///
+    //////////////////////////
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +222,15 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         // Inflate the menu options from the res/menu/menu_editor.xml file.
         // This adds menu items to the app bar.
         getMenuInflater().inflate(R.menu.menu_editor, menu);
+
+        for(int i = 0; i < menu.size(); i++){
+            Drawable drawable = menu.getItem(i).getIcon();
+            if(drawable != null) {
+                drawable.mutate();
+                drawable.setColorFilter(getResources().getColor(R.color.colorWhite), PorterDuff.Mode.SRC_ATOP);
+            }
+        }
+
         return true;
     }
 
@@ -161,8 +262,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         switch (item.getItemId()) {
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
+                hideSoftKeyboard(this);
                 saveProduct();
-                finish();
                 return true;
 
             // Respond to a click on the "Delete" menu option
@@ -297,55 +398,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         }
     }
 
-    private Bitmap getBitmapFromUri(Uri uri) {
-        if (uri == null || uri.toString().isEmpty())
-            return null;
-
-        // Get the dimensions of the View
-        int targetW = mImageView.getWidth();
-        int targetH = mImageView.getHeight();
-
-        InputStream input = null;
-        try {
-            input = this.getContentResolver().openInputStream(uri);
-
-            // Get the dimensions of the bitmap
-            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-            bmOptions.inJustDecodeBounds = true;
-            BitmapFactory.decodeStream(input, null, bmOptions);
-            input.close();
-
-            int photoW = bmOptions.outWidth;
-            int photoH = bmOptions.outHeight;
-
-            // Determine how much to scale down the image
-            int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
-
-            // Decode the image file into a Bitmap sized to fill the View
-            bmOptions.inJustDecodeBounds = false;
-            bmOptions.inSampleSize = scaleFactor;
-            bmOptions.inPurgeable = true;
-
-            input = this.getContentResolver().openInputStream(uri);
-            Bitmap bitmap = BitmapFactory.decodeStream(input, null, bmOptions);
-            input.close();
-            return bitmap;
-
-        } catch (FileNotFoundException fne) {
-            Log.e(LOG_TAG, "Failed to load image.", fne);
-            return null;
-        } catch (Exception e) {
-            Log.e(LOG_TAG, "Failed to load image.", e);
-            return null;
-        } finally {
-            try {
-                input.close();
-            } catch (IOException ioe) {
-
-            }
-        }
-    }
-
     /**
      * Handles loader reset.
      * @param loader
@@ -405,6 +457,40 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mSupplierEmailEditText.setOnTouchListener(mTouchListener);
 
         mBrowseGalleryButton.setOnClickListener(mBrowseGalleryListener);
+        mOrderButton.setOnClickListener(mOrderListener);
+        mDecrementButton.setOnClickListener(mDecrementListener);
+        mIncrementButton.setOnClickListener(mIncrementListener);
+    }
+
+    /**
+     * Get the increment value from the EditText.
+     * @return
+     */
+    private int getIncrement() {
+        return getIntegerValueFromEditText(mIncrementEditText, 1);
+    }
+
+    /**
+     * Get quantity value from the EditText.
+     * @return
+     */
+    private int getQuantity() {
+        return getIntegerValueFromEditText(mQuantityEditText, 0);
+    }
+
+    /**
+     * Extract an integer value from an EditText or a default value.
+     * @param field
+     * @param defaultValue
+     * @return
+     */
+    private int getIntegerValueFromEditText(EditText field, int defaultValue) {
+        String incrementString = field.getText().toString();
+        try {
+            return Integer.parseInt(incrementString);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 
     /**
@@ -415,10 +501,14 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mNameEditText          = (EditText) findViewById(R.id.edit_product_name);
         mDescriptionEditText   = (EditText) findViewById(R.id.edit_product_description);
         mQuantityEditText      = (EditText) findViewById(R.id.edit_product_quantity);
+        mIncrementEditText     = (EditText) findViewById(R.id.edit_product_increment);
         mPriceEditText         = (EditText) findViewById(R.id.edit_product_price);
         mSupplierNameEditText  = (EditText) findViewById(R.id.edit_product_supplier_name);
         mSupplierEmailEditText = (EditText) findViewById(R.id.edit_product_supplier_email);
         mBrowseGalleryButton   = (RelativeLayout) findViewById(R.id.edit_product_browse_gallery);
+        mOrderButton           = (RelativeLayout) findViewById(R.id.edit_product_order);
+        mIncrementButton       = (Button) findViewById(R.id.button_increment);
+        mDecrementButton       = (Button) findViewById(R.id.button_decrement);
         mImageView             = (ImageView) findViewById(R.id.image_preview);
     }
 
@@ -503,6 +593,10 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
      */
     private void saveProduct() {
         ContentValues values = getContentValues();
+        if (values == null) {
+            Toast.makeText(this, mErrorMessage, Toast.LENGTH_LONG).show();
+            return;
+        }
 
         Uri newUri = null;
         int updatedProducts = 0;
@@ -520,14 +614,16 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         } else {
             // If the new content URI is null, then there was an error with insertion.
             Toast.makeText(this, getString(R.string.editor_insert_product_failed), Toast.LENGTH_SHORT).show();
-
         }
+
+        finish();
     }
 
     /**
      * Builds ContentValues object.
      * @return
      */
+    @Nullable
     private ContentValues getContentValues() {
         // Read from input fields and trim trailing white space
         String nameString          = mNameEditText.getText().toString().trim();
@@ -536,7 +632,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         String priceString         = mPriceEditText.getText().toString().trim();
         String supplierNameString  = mSupplierNameEditText.getText().toString().trim();
         String supplierEmailString = mSupplierEmailEditText.getText().toString().trim();
-        String imageUriString      = mImageUri.toString();
+        String imageUriString      = mImageUri==null?null:mImageUri.toString();
 
         // handle empty quantity
         int quantity = 0;
@@ -550,6 +646,51 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             price = Float.parseFloat(priceString);
         }
 
+        if (TextUtils.isEmpty(nameString)) {
+            mErrorMessage = "Product name is required";
+            return null;
+        }
+
+        if (TextUtils.isEmpty(descriptionString)) {
+            mErrorMessage = "Product description is required";
+            return null;
+        }
+
+        if (getIntegerValueFromEditText(mQuantityEditText, MAX_QUANTITY) > MAX_QUANTITY) {
+            mErrorMessage = "Maximum quantity is " + MAX_QUANTITY;
+            return null;
+        }
+
+        if (getIntegerValueFromEditText(mQuantityEditText, MIN_QUANTITY) < MIN_QUANTITY) {
+            mErrorMessage = "Minimum quantity is " + MIN_QUANTITY;
+            return null;
+        }
+
+        if (TextUtils.isEmpty(quantityString)) {
+            mErrorMessage = "Product quantity is required";
+            return null;
+        }
+
+        if (TextUtils.isEmpty(priceString)) {
+            mErrorMessage = "Product price is required";
+            return null;
+        }
+
+
+        if (TextUtils.isEmpty(supplierNameString)) {
+            mErrorMessage = "Supplier name is required";
+            return null;
+        }
+
+        if (TextUtils.isEmpty(supplierEmailString)) {
+            mErrorMessage = "Supplier email is required";
+            return null;
+        }
+
+        if (mCurrentProductUri != null && TextUtils.isEmpty(imageUriString)) {
+            mErrorMessage = "Product image is required";
+            return null;
+        }
 
         // Create a ContentValues object where column names are the keys,
         // and product attributes from the editor are the values.
@@ -561,18 +702,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         values.put(ProductEntry.COLUMN_PRODUCT_IMAGE, imageUriString);
         values.put(ProductEntry.COLUMN_PRODUCT_SUPPLIER_NAME, supplierNameString);
         values.put(ProductEntry.COLUMN_PRODUCT_SUPPLIER_EMAIL, supplierEmailString);
-
-        if (mCurrentProductUri == null &&
-                TextUtils.isEmpty(nameString) &&
-                TextUtils.isEmpty(descriptionString) &&
-                TextUtils.isEmpty(quantityString) &&
-                TextUtils.isEmpty(priceString) &&
-                TextUtils.isEmpty(supplierNameString) &&
-                TextUtils.isEmpty(supplierEmailString)){
-            finish();
-            return null;
-        }
-
         return values;
     }
 
@@ -585,5 +714,68 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         galleryIntent.setType("image/*");
 
         startActivityForResult(galleryIntent, PICK_IMAGE);
+    }
+
+    /**
+     * Get bitmap stored from URI
+     * @param uri
+     * @return
+     */
+    private Bitmap getBitmapFromUri(Uri uri) {
+        if (uri == null || uri.toString().isEmpty())
+            return null;
+
+        // Get the dimensions of the View
+        int targetW = mImageView.getWidth();
+        int targetH = mImageView.getHeight();
+
+        InputStream input = null;
+        try {
+            input = this.getContentResolver().openInputStream(uri);
+
+            // Get the dimensions of the bitmap
+            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            bmOptions.inJustDecodeBounds = true;
+            BitmapFactory.decodeStream(input, null, bmOptions);
+            input.close();
+
+            int photoW = bmOptions.outWidth;
+            int photoH = bmOptions.outHeight;
+
+            // Determine how much to scale down the image
+            int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
+
+            // Decode the image file into a Bitmap sized to fill the View
+            bmOptions.inJustDecodeBounds = false;
+            bmOptions.inSampleSize = scaleFactor;
+            bmOptions.inPurgeable = true;
+
+            input = this.getContentResolver().openInputStream(uri);
+            Bitmap bitmap = BitmapFactory.decodeStream(input, null, bmOptions);
+            input.close();
+            return bitmap;
+
+        } catch (FileNotFoundException fne) {
+            Log.e(LOG_TAG, "Failed to load image.", fne);
+            return null;
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Failed to load image.", e);
+            return null;
+        } finally {
+            try {
+                input.close();
+            } catch (IOException ioe) {
+
+            }
+        }
+    }
+
+    /**
+     * Hide keyboard
+     * @param activity
+     */
+    public static void hideSoftKeyboard(Activity activity) {
+        InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
     }
 }

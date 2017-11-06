@@ -23,7 +23,7 @@ import com.example.android.inventoryapp.data.ProductContract.ProductEntry;
  */
 public class ProductCursorAdapter extends CursorAdapter {
 
-    private int buttonState;
+    private final Context mContext;
 
     /**
      * Constructs a new {@link ProductCursorAdapter}.
@@ -33,6 +33,7 @@ public class ProductCursorAdapter extends CursorAdapter {
      */
     public ProductCursorAdapter(Context context, Cursor c) {
         super(context, c, 0 /* flags */);
+        mContext = context;
     }
 
     /**
@@ -60,21 +61,28 @@ public class ProductCursorAdapter extends CursorAdapter {
      */
     @Override
     public void bindView(View view, final Context context, Cursor cursor) {
-        TextView tvName = (TextView) view.findViewById(R.id.name);
-        TextView tvQuantity = (TextView) view.findViewById(R.id.quantity);
-        TextView tvPrice = (TextView) view.findViewById(R.id.price);
-        final Button bSale = (Button) view.findViewById(R.id.button_sale);
+        final int id       = cursor.getInt(cursor.getColumnIndex(ProductEntry._ID));
 
-        String name = cursor.getString(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_NAME));
-        float price = cursor.getFloat(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_PRICE));
-        final int quantity = cursor.getInt(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_QUANTITY));
-        setButtonState(bSale, quantity);
-        final int id = cursor.getInt(cursor.getColumnIndex(ProductEntry._ID));
-
+        // product name.
+        TextView tvName     = (TextView) view.findViewById(R.id.name);
+        String name        = cursor.getString(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_NAME));
         tvName.setText(name);
-        tvPrice.setText(String.valueOf(price));
-        tvQuantity.setText(String.valueOf(quantity));
 
+        // product quantity.
+        TextView tvQuantity = (TextView) view.findViewById(R.id.quantity);
+        final int quantity = cursor.getInt(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_QUANTITY));
+        tvQuantity.setText(String.valueOf(quantity));
+        setQuantityColor(quantity, tvQuantity);
+
+        // product price
+        TextView tvPrice    = (TextView) view.findViewById(R.id.price);
+        float price        = cursor.getFloat(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_PRICE));
+        tvPrice.setText(String.valueOf(price) + "€");
+
+        final Button bSale  = (Button) view.findViewById(R.id.button_sale);
+        setButtonState(bSale, quantity);
+
+        // Click listener for the SALE button.
         bSale.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -90,11 +98,35 @@ public class ProductCursorAdapter extends CursorAdapter {
         });
     }
 
+    /**
+     * Set enabled/disabled state of the SALE button.
+     * @param button
+     * @param quantity
+     */
     public void setButtonState(Button button, int quantity) {
         if (quantity == 0){
             button.setEnabled(false);
         } else {
             button.setEnabled(true);
         }
+    }
+
+    /**
+     * Set the text color for the quantity TextView.
+     * @param quantity
+     * @param textView
+     */
+    public void setQuantityColor(int quantity, TextView textView) {
+        if (quantity <= 5){
+            textView.setTextColor(mContext.getResources().getColor(R.color.colorRed));
+            return;
+        }
+
+        if (quantity <= 15){
+            textView.setTextColor(mContext.getResources().getColor(R.color.colorOrange));
+            return;
+        }
+
+        textView.setTextColor(mContext.getResources().getColor(R.color.colorGreen));
     }
 }

@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,7 +30,6 @@ public class InventoryActivity extends AppCompatActivity implements LoaderManage
         setContentView(R.layout.activity_inventory);
 
         setAdapter();
-        setToolbar();
         setFloatingActionButton();
         getLoaderManager().initLoader(PRODUCT_LOADER_ID, null, this);
     }
@@ -191,11 +189,4 @@ public class InventoryActivity extends AppCompatActivity implements LoaderManage
         });
     }
 
-    /**
-     * Set the toolbar.
-     */
-    private void setToolbar() {
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
-    }
 }

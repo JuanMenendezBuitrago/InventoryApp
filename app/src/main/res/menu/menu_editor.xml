@@ -19,11 +19,14 @@
     <item
         android:id="@+id/action_save"
         android:title="@string/action_save"
+        android:iconTint="@color/colorWhite"
         android:icon="@drawable/ic_done"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_delete"
         android:title="@string/action_delete"
-        app:showAsAction="never" />
+        android:iconTint="@color/colorWhite"
+        android:icon="@drawable/ic_trash"
+        app:showAsAction="always" />
 </menu>
