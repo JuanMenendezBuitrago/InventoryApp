@@ -23,6 +23,8 @@ import com.example.android.inventoryapp.data.ProductContract.ProductEntry;
  */
 public class ProductCursorAdapter extends CursorAdapter {
 
+    private int buttonState;
+
     /**
      * Constructs a new {@link ProductCursorAdapter}.
      *
@@ -58,31 +60,41 @@ public class ProductCursorAdapter extends CursorAdapter {
      */
     @Override
     public void bindView(View view, final Context context, Cursor cursor) {
-        TextView tvName     = (TextView)view.findViewById(R.id.name);
-        TextView tvQuantity = (TextView)view.findViewById(R.id.quantity);
-        TextView tvPrice    = (TextView)view.findViewById(R.id.price);
-        Button bSale        = (Button)view.findViewById(R.id.button_sale);
-        
-        String name    = cursor.getString(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_NAME));
-        float price    = cursor.getFloat(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_PRICE));
-        final int quantity   = cursor.getInt(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_QUANTITY));
+        TextView tvName = (TextView) view.findViewById(R.id.name);
+        TextView tvQuantity = (TextView) view.findViewById(R.id.quantity);
+        TextView tvPrice = (TextView) view.findViewById(R.id.price);
+        final Button bSale = (Button) view.findViewById(R.id.button_sale);
+
+        String name = cursor.getString(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_NAME));
+        float price = cursor.getFloat(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_PRICE));
+        final int quantity = cursor.getInt(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_QUANTITY));
+        setButtonState(bSale, quantity);
         final int id = cursor.getInt(cursor.getColumnIndex(ProductEntry._ID));
-        
+
         tvName.setText(name);
         tvPrice.setText(String.valueOf(price));
         tvQuantity.setText(String.valueOf(quantity));
-        
+
         bSale.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (quantity > 0) {
                     ContentValues values = new ContentValues();
-                    values.put(ProductEntry.COLUMN_PRODUCT_QUANTITY, quantity-1);
+                    values.put(ProductEntry.COLUMN_PRODUCT_QUANTITY, quantity - 1);
 
                     Uri uri = ContentUris.withAppendedId(ProductEntry.CONTENT_URI, id);
                     context.getContentResolver().update(uri, values, null, null);
                 }
+                setButtonState(bSale, quantity - 1);
             }
         });
+    }
+
+    public void setButtonState(Button button, int quantity) {
+        if (quantity == 0){
+            button.setEnabled(false);
+        } else {
+            button.setEnabled(true);
+        }
     }
 }
