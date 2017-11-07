@@ -55,10 +55,6 @@ public class InventoryActivity extends AppCompatActivity implements LoaderManage
     public boolean onOptionsItemSelected(MenuItem item) {
         // User clicked on a menu option in the app bar overflow menu
         switch (item.getItemId()) {
-            // Respond to a click on the "Insert dummy data" menu option
-            case R.id.action_insert_dummy_data:
-                insertProduct();
-                return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
                 deleteAllProducts();
@@ -117,22 +113,6 @@ public class InventoryActivity extends AppCompatActivity implements LoaderManage
     ///////////////////////
     /// Utility methods ///
     ///////////////////////
-
-    /**
-     * Helper method to insert hardcoded pet data into the database. For debugging purposes only.
-     */
-    private void insertProduct() {
-        // Create a ContentValues object where column names are the keys, product attributes are the values.
-        ContentValues values = new ContentValues();
-        values.put(ProductEntry.COLUMN_PRODUCT_NAME, "Toto");
-        values.put(ProductEntry.COLUMN_PRODUCT_DESCRIPTION, "Terrier");
-        values.put(ProductEntry.COLUMN_PRODUCT_QUANTITY, 1);
-        values.put(ProductEntry.COLUMN_PRODUCT_PRICE, 10.0);
-        values.put(ProductEntry.COLUMN_PRODUCT_SUPPLIER_NAME, "Supplier name");
-        values.put(ProductEntry.COLUMN_PRODUCT_SUPPLIER_EMAIL, "supplier@example.com");
-
-        Uri newUri = getContentResolver().insert(ProductEntry.CONTENT_URI, values);
-    }
 
     /**
      * Delete all products in the database.

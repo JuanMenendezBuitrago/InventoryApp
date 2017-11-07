@@ -16,6 +16,8 @@ import android.widget.TextView;
 import com.example.android.inventoryapp.R;
 import com.example.android.inventoryapp.data.ProductContract.ProductEntry;
 
+import java.util.Locale;
+
 /**
  * {@link ProductCursorAdapter} is an adapter for a list view
  * that uses a {@link Cursor} of product data as its data source. This adapter knows
@@ -77,7 +79,8 @@ public class ProductCursorAdapter extends CursorAdapter {
         // product price
         TextView tvPrice    = (TextView) view.findViewById(R.id.price);
         float price        = cursor.getFloat(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_PRICE));
-        tvPrice.setText(String.valueOf(price) + "€");
+        String priceString = String.valueOf(price)+"€";
+        tvPrice.setText( priceString);
 
         final Button bSale  = (Button) view.findViewById(R.id.button_sale);
         setButtonState(bSale, quantity);

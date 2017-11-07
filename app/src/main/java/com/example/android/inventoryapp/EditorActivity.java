@@ -53,6 +53,7 @@ import com.example.android.inventoryapp.data.ProductContract.ProductEntry;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 
 /**
  * Allows user to create a new product or edit an existing one.
@@ -150,7 +151,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             if (newQuantity < (MIN_QUANTITY+1)) {
                 newQuantity = MIN_QUANTITY;
                 mDecrementButton.setEnabled(false);
-                Toast.makeText(EditorActivity.this, "You have reached the minimum", Toast.LENGTH_SHORT).show();
+                Toast.makeText(EditorActivity.this, R.string.reached_minimum, Toast.LENGTH_SHORT).show();
             }
             mQuantityEditText.setText(String.valueOf(newQuantity));
         }
@@ -174,7 +175,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             if (newQuantity > (MAX_QUANTITY-1) ) {
                 newQuantity = MAX_QUANTITY;
                 mIncrementButton.setEnabled(false);
-                Toast.makeText(EditorActivity.this, "You have reached the maximum", Toast.LENGTH_SHORT).show();
+                Toast.makeText(EditorActivity.this, R.string.reached_maximum, Toast.LENGTH_SHORT).show();
             }
             mQuantityEditText.setText(String.valueOf(newQuantity));
         }
@@ -207,8 +208,10 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
 
+        setCurrentUri();
         setActivityTitle();
         setEventListeners();
+        setOrderButton();
         initLoader();
     }
 
@@ -525,6 +528,14 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     }
 
     /**
+     * Show or hide order button
+     */
+    private void setOrderButton() {
+        if (mCurrentProductUri == null)
+            mOrderButton.setVisibility(View.GONE);
+    }
+
+    /**
      * Build a dialog and attach event listeners to positive and negative buttons.
      */
     private void showDeleteConfirmationDialog() {
@@ -592,7 +603,10 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
      * Get user input from editor and save new product into database.
      */
     private void saveProduct() {
+        // collect data from form
         ContentValues values = getContentValues();
+
+        // show validation toast
         if (values == null) {
             Toast.makeText(this, mErrorMessage, Toast.LENGTH_LONG).show();
             return;
@@ -643,52 +657,54 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         // handle empty price
         float price = 0.0f;
         if (!TextUtils.isEmpty(priceString)) {
-            price = Float.parseFloat(priceString);
+            BigDecimal bd = new BigDecimal(priceString);
+            bd = bd.setScale(2, BigDecimal.ROUND_HALF_UP);
+            price = bd.floatValue();
         }
 
         if (TextUtils.isEmpty(nameString)) {
-            mErrorMessage = "Product name is required";
+            mErrorMessage = getString(R.string.product_name_required);
             return null;
         }
 
         if (TextUtils.isEmpty(descriptionString)) {
-            mErrorMessage = "Product description is required";
+            mErrorMessage = getString(R.string.product_description_required);
             return null;
         }
 
         if (getIntegerValueFromEditText(mQuantityEditText, MAX_QUANTITY) > MAX_QUANTITY) {
-            mErrorMessage = "Maximum quantity is " + MAX_QUANTITY;
+            mErrorMessage = getString(R.string.product_maximum_quantity) + MAX_QUANTITY;
             return null;
         }
 
         if (getIntegerValueFromEditText(mQuantityEditText, MIN_QUANTITY) < MIN_QUANTITY) {
-            mErrorMessage = "Minimum quantity is " + MIN_QUANTITY;
+            mErrorMessage = getString(R.string.product_minimum_quantity) + MIN_QUANTITY;
             return null;
         }
 
         if (TextUtils.isEmpty(quantityString)) {
-            mErrorMessage = "Product quantity is required";
+            mErrorMessage = getString(R.string.product_quantity_required);
             return null;
         }
 
         if (TextUtils.isEmpty(priceString)) {
-            mErrorMessage = "Product price is required";
+            mErrorMessage = getString(R.string.product_price_required);
             return null;
         }
 
 
         if (TextUtils.isEmpty(supplierNameString)) {
-            mErrorMessage = "Supplier name is required";
+            mErrorMessage = getString(R.string.supplier_name_required);
             return null;
         }
 
         if (TextUtils.isEmpty(supplierEmailString)) {
-            mErrorMessage = "Supplier email is required";
+            mErrorMessage = getString(R.string.supplier_email_required);
             return null;
         }
 
-        if (mCurrentProductUri != null && TextUtils.isEmpty(imageUriString)) {
-            mErrorMessage = "Product image is required";
+        if (TextUtils.isEmpty(imageUriString)) {
+            mErrorMessage = getString(R.string.product_image_required);
             return null;
         }
 

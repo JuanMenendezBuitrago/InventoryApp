@@ -46,8 +46,17 @@
     <!-- Text hint for price field in the editor [CHAR LIMIT=30] -->
     <string name="hint_product_price">Price</string>
 
-    <!-- Text hint for product description  [CHAR LIMIT=NONE] -->
+    <!-- Text hint for product description  [CHAR LIMIT=30] -->
     <string name="hint_product_description">Description</string>
+
+    <!-- Text hint for product supplier emaill  [CHAR LIMIT=30] -->
+    <string name="hint_product_supplier_email">sup. email</string>
+
+    <!-- Text hint for product supplier name  [CHAR LIMIT=30] -->
+    <string name="hint_product_supplier_name">sup. name</string>
+
+    <!-- Text hint for quantity increment  [CHAR LIMIT=30] -->
+    <string name="hint_product_increment">increment</string>
 
     <!-- #####
          TEXTS
@@ -113,8 +122,30 @@
 
     <!-- Toast message in inventory when all products have been deleted successfully [CHAR LIMIT=NONE] -->
     <string name="action_delete_all_products_successful">All Products Deleted Successfuly</string>
-    <string name="hint_product_supplier_email">sup. email</string>
-    <string name="hint_product_supplier_name">sup. name</string>
-    <string name="hint_product_increment">increment</string>
+
+    <!-- ##############
+         MOCK CONTENT
+         ############## -->
+
+    <string name="mock_product">Mock Product</string>
+    <string name="mock_description">Lorem ipsum dolor sit amet</string>
+    <string name="mock_supplier_name">Supplier name</string>
+    <string name="mock_suplier_email">supplier@example.com</string>
+
+    <!-- ##############
+         ERROR MESSAGES
+         ############## -->
+
+    <string name="product_name_required">Product name is required</string>
+    <string name="product_description_required">Product description is required</string>
+    <string name="product_maximum_quantity">Maximum quantity is</string>
+    <string name="product_minimum_quantity">Minimum quantity is</string>
+    <string name="product_quantity_required">Product quantity is required</string>
+    <string name="product_price_required">Product price is required</string>
+    <string name="supplier_name_required">Supplier name is required</string>
+    <string name="supplier_email_required">Supplier email is required</string>
+    <string name="product_image_required">Product image is required</string>
+    <string name="reached_minimum">You have reached the minimum</string>
+    <string name="reached_maximum">You have reached the maximum</string>
 
 </resources>

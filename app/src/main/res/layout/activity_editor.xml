@@ -74,7 +74,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:hint="@string/hint_product_quantity"
-                    android:inputType="textCapWords" />
+                    android:inputType="number" />
 
                 <!-- increment field -->
                 <Button
@@ -91,7 +91,7 @@
                     android:layout_weight="0"
                     android:gravity="center_horizontal"
                     android:hint="@string/hint_product_increment"
-                    android:inputType="textCapWords"
+                    android:inputType="number"
                     android:text="1" />
 
                 <Button
@@ -108,7 +108,7 @@
                 android:id="@+id/edit_product_price"
                 style="@style/EditorFieldStyle"
                 android:hint="@string/hint_product_price"
-                android:inputType="textCapWords" />
+                android:inputType="numberDecimal" />
 
             <!-- supplier name field -->
             <EditText
@@ -122,7 +122,7 @@
                 android:id="@+id/edit_product_supplier_email"
                 style="@style/EditorFieldStyle"
                 android:hint="@string/hint_product_supplier_email"
-                android:inputType="textCapWords" />
+                android:inputType="textEmailAddress" />
 
             <!-- description field -->
             <EditText
